@@ -26,6 +26,7 @@ let icosphere: Icosphere;
 let square: Square;
 let prevTesselations: number = 5;
 let cube: Cube;
+let start: number;
 
 function loadScene() {
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
@@ -81,7 +82,14 @@ function main() {
   ]);
 
   // This function will be called every frame
-  function tick() {
+  function tick(timeStamp: number) {
+    if (start == undefined)
+    {
+      start = timeStamp;
+    }
+
+    const elapsed = timeStamp - start;
+
     camera.update();
     stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
@@ -104,12 +112,13 @@ function main() {
     lambert.setFloat("u_Amplitude", controls.amplitude);
     lambert.setFloat("u_Frequency", controls.frequency);
     lambert.setFloat("u_Lacunarity", controls.lacunarity);
+    lambert.setFloat("u_Time", timeStamp / 1000.0);
     lambert.setInt("u_Octaves", controls.octaves);
-    
+
     renderer.render(camera, lambert, geomColor, [
-      //icosphere,
+      icosphere,
       //square,
-      cube
+      //cube
     ]);
     stats.end();
 
@@ -128,7 +137,7 @@ function main() {
   camera.updateProjectionMatrix();
 
   // Start the render loop
-  tick();
+  tick(0.0);
 }
 
 main();

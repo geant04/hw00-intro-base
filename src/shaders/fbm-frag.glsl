@@ -9,6 +9,7 @@ uniform float u_Amplitude;
 uniform float u_Persistence;
 uniform float u_Frequency;
 uniform float u_Lacunarity;
+uniform float u_Time;
 uniform int u_Octaves;
 
 in vec4 fs_Nor;
@@ -86,18 +87,18 @@ void main()
         float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
                                                             //to simulate ambient lighting. This ensures that faces that are not
                                                             //lit by our point light are not completely black.
-        float noise = fbm(fs_Pos.xyz);
+        float noise = fbm(fs_Pos.xyz + u_Time);
 
         if (noise < 0.3) discard;
         noise = smoothstep(noise, 0.4, 1.0);
 
-        float nR = cosineGradient(noise, vec4(0.5, 0.5, 1.0, 0.0));
-        float nG = cosineGradient(noise, vec4(0.5, 0.5, 1.0, 0.3333));
-        float nB = cosineGradient(noise, vec4(0.5, 0.5, 1.0, 0.6666));
+        float nR = cosineGradient(noise + u_Time, vec4(0.5, 0.5, 1.0, 0.0));
+        float nG = cosineGradient(noise + u_Time, vec4(0.5, 0.5, 1.0, 0.3333));
+        float nB = cosineGradient(noise + u_Time, vec4(0.5, 0.5, 1.0, 0.6666));
 
+        diffuseColor.rgb = vec3(nR, -nG, nB) * diffuseColor.rgb;
         vec3 noiseColor = noise * diffuseColor.rgb;
 
-        //diffuseColor.rgb = vec3(nR, nG, nB) * diffuseColor.rgb;
         vec3 positivePos = (fs_Pos.xyz) * 0.50 + 0.50;
         positivePos = mix(positivePos, noiseColor, 0.50);
         positivePos = clamp(positivePos, vec3(0.0), vec3(1.0));
