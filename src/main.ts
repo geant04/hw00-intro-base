@@ -1,8 +1,9 @@
-import {vec3} from 'gl-matrix';
+import {vec3, vec4} from 'gl-matrix';
 const Stats = require('stats-js');
 import * as DAT from 'dat.gui';
 import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
+import Cube from './geometry/Cube';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
@@ -12,18 +13,27 @@ import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
   tesselations: 5,
+  color: [255, 0, 0],
+  persistence: 0.5,
+  amplitude: 0.5,
+  frequency: 2.0,
+  lacunarity: 2.0,
+  octaves: 8,
   'Load Scene': loadScene, // A function pointer, essentially
 };
 
 let icosphere: Icosphere;
 let square: Square;
 let prevTesselations: number = 5;
+let cube: Cube;
 
 function loadScene() {
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
   icosphere.create();
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
+  cube = new Cube(vec3.fromValues(0, 0, 0));
+  cube.create();
 }
 
 function main() {
@@ -38,6 +48,12 @@ function main() {
   // Add controls to the gui
   const gui = new DAT.GUI();
   gui.add(controls, 'tesselations', 0, 8).step(1);
+  gui.addColor(controls, 'color');
+  gui.add(controls, 'persistence', 0.0, 1.0);
+  gui.add(controls, 'amplitude', 0.0, 1.0);
+  gui.add(controls, 'frequency', 0.0, 10.0);
+  gui.add(controls, 'lacunarity', 0.0, 10.0);
+  gui.add(controls, 'octaves', 0, 10).step(1);
   gui.add(controls, 'Load Scene');
 
   // get canvas and webgl context
@@ -61,7 +77,7 @@ function main() {
 
   const lambert = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fbm-frag.glsl')),
   ]);
 
   // This function will be called every frame
@@ -76,9 +92,24 @@ function main() {
       icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
       icosphere.create();
     }
-    renderer.render(camera, lambert, [
-      icosphere,
-      // square,
+
+    let geomColor = vec4.fromValues(
+                        controls.color[0] / 255.0,
+                        controls.color[1] / 255.0,
+                        controls.color[2] / 255.0,
+                        1.0,
+                      );
+    
+    lambert.setFloat("u_Persistence", controls.persistence);
+    lambert.setFloat("u_Amplitude", controls.amplitude);
+    lambert.setFloat("u_Frequency", controls.frequency);
+    lambert.setFloat("u_Lacunarity", controls.lacunarity);
+    lambert.setInt("u_Octaves", controls.octaves);
+    
+    renderer.render(camera, lambert, geomColor, [
+      //icosphere,
+      //square,
+      cube
     ]);
     stats.end();
 
