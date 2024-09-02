@@ -23,7 +23,7 @@ out vec4 out_Col;
 
 float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
 
-float perlin3D(vec3 pos)
+float value3D(vec3 pos)
 {
     // gg this gon get nasty
     // https://www.shadertoy.com/view/4dS3Wd Morgan Mcguire my goat
@@ -54,7 +54,7 @@ float fbm(vec3 pos)
 
     for (int i = 0; i < octaves; i++)
     {
-        total += amp * perlin3D(pos * freq);
+        total += amp * value3D(pos * freq);
         amp *= persistence;
         freq *= lacunarity;
     }
