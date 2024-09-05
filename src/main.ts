@@ -20,6 +20,7 @@ const controls = {
   frequency: 2.0,
   lacunarity: 2.0,
   octaves: 8,
+  cube: false,
   'Load Scene': loadScene, // A function pointer, essentially
 };
 
@@ -56,6 +57,7 @@ function main() {
   gui.add(controls, 'frequency', 0.0, 10.0);
   gui.add(controls, 'lacunarity', 0.0, 10.0);
   gui.add(controls, 'octaves', 0, 10).step(1);
+  gui.add(controls, 'cube', false);
   gui.add(controls, 'Load Scene');
 
   // get canvas and webgl context
@@ -76,6 +78,8 @@ function main() {
   const renderer = new OpenGLRenderer(canvas);
   renderer.setClearColor(0.2, 0.2, 0.2, 1);
   gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   const lambert = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
@@ -116,11 +120,12 @@ function main() {
     lambert.setFloat("u_Time", timeStamp / 1000.0);
     lambert.setInt("u_Octaves", controls.octaves);
 
-    renderer.render(camera, lambert, geomColor, [
-      icosphere,
-      //square,
-      //cube
-    ]);
+    let objects = []
+    
+    if (controls.cube) objects.push(cube)
+    if (!controls.cube) objects.push(icosphere)
+
+    renderer.render(camera, lambert, geomColor, objects);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame

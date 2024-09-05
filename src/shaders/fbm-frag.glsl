@@ -25,7 +25,6 @@ float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fra
 
 float value3D(vec3 pos)
 {
-    // gg this gon get nasty
     // https://www.shadertoy.com/view/4dS3Wd Morgan Mcguire my goat
     const vec3 step = vec3(110, 241, 171);
 
@@ -90,18 +89,23 @@ void main()
         float noise = fbm(fs_Pos.xyz + u_Time);
 
         if (noise < 0.3) discard;
+
         noise = smoothstep(noise, 0.4, 1.0);
 
         float nR = cosineGradient(noise + u_Time, vec4(0.5, 0.5, 1.0, 0.0));
         float nG = cosineGradient(noise + u_Time, vec4(0.5, 0.5, 1.0, 0.3333));
         float nB = cosineGradient(noise + u_Time, vec4(0.5, 0.5, 1.0, 0.6666));
 
-        diffuseColor.rgb = vec3(nR, -nG, nB) * diffuseColor.rgb;
-        vec3 noiseColor = noise * diffuseColor.rgb;
+        vec3 noiseColor = diffuseColor.rgb;
 
         vec3 positivePos = (fs_Pos.xyz) * 0.50 + 0.50;
-        positivePos = mix(positivePos, noiseColor, 0.50);
+        positivePos = mix(positivePos, vec3(nR, -nG, nB), 0.5);
         positivePos = clamp(positivePos, vec3(0.0), vec3(1.0));
+
+        vec3 outColor = positivePos;
+
+        if (noise > 0.6) outColor = noiseColor;
+
         // Compute final shaded color
-        out_Col = vec4(positivePos * lightIntensity, diffuseColor.a);
+        out_Col = vec4(outColor * lightIntensity, diffuseColor.a * (noise + 0.90));
 }
