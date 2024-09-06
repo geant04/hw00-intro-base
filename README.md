@@ -7,6 +7,7 @@
 
 # Anthony Ge Submission
 For this assignment, I made a wobbly egg using 3D value noise, GL alphablending, and simple sin-based vertex deformation.
+Demo live here: [https://geant04.github.io/hw00-intro-base/](https://geant04.github.io/hw00-intro-base/)
 
 ![Egg.](/egg.gif)
 ![Cube.](/image.png)
